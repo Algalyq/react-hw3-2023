@@ -1,33 +1,69 @@
 'use client'
-import { useState, useEffect } from 'react';
+import { useEffect, useReducer } from 'react';
 import TaskService from '@/app/services/TaskService';
 
+const initialState = {
+  todos: [],
+  newTodo: '',
+};
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_TODOS':
+      return { ...state, todos: action.payload };
+    case 'SET_NEW_TODO':
+      return { ...state, newTodo: action.payload };
+    case 'ADD_TODO':
+      return { ...state, todos: [...state.todos, action.payload] };
+    case 'DELETE_TODO':
+      return {
+        ...state,
+        todos: state.todos.filter((todo) => todo._id !== action.payload),
+      };
+    default:
+      return state;
+  }
+};
+
 const TodoPage = () => {
-  const [todos, setTodos] = useState([]);
-  const [newTodo, setNewTodo] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { todos, newTodo } = state;
 
   useEffect(() => {
-    const storedTodos = localStorage.getItem('todos');
-    if (storedTodos) {
-      setTodos(JSON.parse(storedTodos));
-    }
+    TaskService.getAllTasks()
+      .then((tasks) => {
+        dispatch({ type: 'SET_TODOS', payload: tasks });
+      })
+      .catch((error) => {
+        console.error('Error fetching tasks:', error);
+      });
   }, []);
 
   useEffect(() => {
     localStorage.setItem('todos', JSON.stringify(todos));
   }, [todos]);
 
-  const addTodo = () => {
+  const addTodo = async () => {
     if (newTodo.trim() !== '') {
-      setTodos([...todos, newTodo]);
-      setNewTodo('');
+      try {
+        const newTask = await TaskService.createNewTask(newTodo.trim());
+        dispatch({ type: 'ADD_TODO', payload: newTask });
+        dispatch({ type: 'SET_NEW_TODO', payload: '' });
+      } catch (error) {
+        console.error('Error creating task:', error);
+      }
     }
   };
-
-  const deleteTodo = (index) => {
-    const updatedTodos = [...todos];
-    updatedTodos.splice(index, 1);
-    setTodos(updatedTodos);
+  const deleteTodo2 = useEffect(() => {
+    TaskService.deleteNewTask().the
+  })
+  const deleteTodo = async (id) => {
+    try {
+      await TaskService.deleteNewTask(id);
+      dispatch({ type: 'DELETE_TODO', payload: id });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   return (
@@ -39,7 +75,9 @@ const TodoPage = () => {
           className="flex-grow rounded-l-md border border-gray-300 p-2 focus:outline-none"
           placeholder="Enter a new task"
           value={newTodo}
-          onChange={(e) => setNewTodo(e.target.value)}
+          onChange={(e) =>
+            dispatch({ type: 'SET_NEW_TODO', payload: e.target.value })
+          }
         />
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white rounded-r-md px-4 py-2"
@@ -49,15 +87,15 @@ const TodoPage = () => {
         </button>
       </div>
       <ul>
-        {todos.map((todo, index) => (
+        {todos.map((todo) => (
           <li
-            key={index}
+            key={todo._id}
             className="flex items-center justify-between border-b border-gray-300 py-2"
           >
-            {todo}
+            {todo.content}
             <button
               className="text-red-500 hover:text-red-600"
-              onClick={() => deleteTodo(index)}
+              onClick={() => deleteTodo(todo._id)}
             >
               Delete
             </button>
