@@ -37,6 +37,7 @@ class TaskService {
     }   
     static async createNewTask(task) {
         try {
+          console.log(task)
             const response = await axios.post(TODO_API, {"content": `${task}`, "due_string": "today", "due_lang": "en", "priority": 4}, {
               headers: {
                 Authorization: `Bearer ${TODOIST_TOKEN}`
