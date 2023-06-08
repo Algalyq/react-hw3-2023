@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import TaskService from '@/app/services/TaskService';
 
 const initialState = {
@@ -15,10 +15,17 @@ const reducer = (state, action) => {
       return { ...state, newTodo: action.payload };
     case 'ADD_TODO':
       return { ...state, todos: [...state.todos, action.payload] };
+    case 'TOGGLE_TODO':
+      return {
+        ...state,
+        todos: state.todos.map((todo) =>
+          todo.id === action.payload ? { ...todo, completed: !todo.completed } : todo
+        ),
+      };
     case 'DELETE_TODO':
       return {
         ...state,
-        todos: state.todos.filter((todo) => todo._id !== action.payload),
+        todos: state.todos.filter((todo) => todo.id !== action.payload),
       };
     default:
       return state;
@@ -33,6 +40,7 @@ const TodoPage = () => {
     TaskService.getAllTasks()
       .then((tasks) => {
         dispatch({ type: 'SET_TODOS', payload: tasks });
+        console.log(tasks)
       })
       .catch((error) => {
         console.error('Error fetching tasks:', error);
@@ -46,7 +54,7 @@ const TodoPage = () => {
   const addTodo = async () => {
     if (newTodo.trim() !== '') {
       try {
-        const newTask = await TaskService.createNewTask(newTodo.trim());
+        const newTask = await TaskService.createNewTask({ content: newTodo.trim() });
         dispatch({ type: 'ADD_TODO', payload: newTask });
         dispatch({ type: 'SET_NEW_TODO', payload: '' });
       } catch (error) {
@@ -54,13 +62,26 @@ const TodoPage = () => {
       }
     }
   };
-  const deleteTodo2 = useEffect(() => {
-    TaskService.deleteNewTask().the
-  })
+
+  const toggleTodo = async (id) => {
+    try {
+      const todo = todos.find((todo) => todo.id === id);
+      const updatedTask = { ...todo, completed: !todo.is_completed };
+      await TaskService.updateNewTask(updatedTask);
+      dispatch({ type: 'TOGGLE_TODO', payload: id });
+      localStorage.setItem('todos', JSON.stringify(todos));
+    } catch (error) {
+      console.error('Error updating task:', error);
+    }
+  };
+
   const deleteTodo = async (id) => {
     try {
-      await TaskService.deleteNewTask(id);
-      dispatch({ type: 'DELETE_TODO', payload: id });
+        console.log(id)
+      await TaskService.deleteNewTask(todos[id].id);
+      const updatedTodos = [...todos];
+      updatedTodos.splice(id, 1);
+      dispatch({ type: 'SET_TODOS', payload: updatedTodos });
     } catch (error) {
       console.error('Error deleting task:', error);
     }
@@ -75,9 +96,7 @@ const TodoPage = () => {
           className="flex-grow rounded-l-md border border-gray-300 p-2 focus:outline-none"
           placeholder="Enter a new task"
           value={newTodo}
-          onChange={(e) =>
-            dispatch({ type: 'SET_NEW_TODO', payload: e.target.value })
-          }
+          onChange={(e) => dispatch({ type: 'SET_NEW_TODO', payload: e.target.value })}
         />
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white rounded-r-md px-4 py-2"
@@ -87,23 +106,34 @@ const TodoPage = () => {
         </button>
       </div>
       <ul>
-        {todos.map((todo) => (
-          <li
-            key={todo._id}
-            className="flex items-center justify-between border-b border-gray-300 py-2"
-          >
-            {todo.content}
-            <button
-              className="text-red-500 hover:text-red-600"
-              onClick={() => deleteTodo(todo._id)}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-export default TodoPage;
+        {todos.map((todo,index) => (
+                    <li
+                    key={todo.id}
+                    className={`flex items-center justify-between border-b border-gray-300 py-2`}
+                  >
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        className="mr-2"
+                        checked={todo.completed}
+                        onChange={() => toggleTodo(todo.id)}
+                      />
+                      <span className={todo.completed ? 'line-through' : ''}>{todo.content}</span>
+                    </label>
+                    {!todo.completed && (
+                      <button
+                        className="text-red-500 hover:text-red-600"
+                        onClick={() => deleteTodo(index)}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        };
+        
+        export default TodoPage;
+        

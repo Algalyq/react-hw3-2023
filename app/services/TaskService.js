@@ -8,59 +8,77 @@ class TaskService {
     static async getAllTasks() {
         try {
             const response = await axios.get(TODO_API, {
-                headers: {
-                    Authorization: `Bearer ${TODOIST_TOKEN}`
-                },
-               
+              headers: {
+                Authorization: `Bearer ${TODOIST_TOKEN}`
+              },
+              params: {
+                project_id: PROJECT_ID
+              }
             });
+            console.log(response.data)
             return response.data;
-        } catch (error) {
-            console.error('Error retrieving tasks:', error);
+          } catch (error) {
+            console.error("Error getting tasks:", error);
             throw error;
-        }
+          }
     }
     static async getTaskById(id){
-        // ваша реализация получения одной тудушки
+        try {
+            const response = await axios.get(`${TODO_API}/${id}`, {
+              headers: {
+                Authorization: `Bearer ${TODOIST_TOKEN}`
+              }
+            });
+            return response.data;
+          } catch (error) {
+            console.error(`Error getting task with ID ${id}:`, error);
+            throw error;
+          }
     }   
     static async createNewTask(task) {
-      try {
-        const response = await axios.post('https://api.todoist.com/rest/v2/tasks', {"content": `${task}`, "due_string": "today", "due_lang": "en", "priority": 4}, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${TODOIST_TOKEN}`,
-            'X-Request-Id':  "23"
+        try {
+            const response = await axios.post(TODO_API, {"content": `${task}`, "due_string": "today", "due_lang": "en", "priority": 4}, {
+              headers: {
+                Authorization: `Bearer ${TODOIST_TOKEN}`
+              },
+              params: {
+                project_id: PROJECT_ID
+              }
+            });
+            console.log(response.data)
+            return response.data;
+          } catch (error) {
+            console.error("Error creating task:", error);
+            throw error;
           }
-        });
-  
-        console.log('Task created successfully:', response.data);
-      } catch (error) {
-        console.error('Error creating task:', error);
+    }
+    static async updateNewTask(task) {
+        try {
+          const response = await axios.post(`${TODO_API}/${task.id}/close`, task, {
+            headers: {
+              Authorization: `Bearer ${TODOIST_TOKEN}`
+            }
+          });
+          return response.data;
+        } catch (error) {
+          console.error(`Error updating task with ID ${id}:`, error);
+          throw error;
+        }
       }
-    }
-    static async updateNewTask(id, task){
-        // ваша реализация обновления существующей тудушки по ID
-    }
     static async deleteNewTask(id){
-    const endpoint = `https://api.todoist.com/rest/v2/tasks/${id}`;
-
-  try {
-    const response = await axios.delete(endpoint, {
-      headers: {
-        'Authorization': `Bearer ${TODOIST_TOKEN}`
-      }
-    });
-
-    if (response.status === 204) {
-      console.log('Task deleted successfully');
-    } else {
-      console.log('Failed to delete task');
+        try {
+            const response = await axios.delete(`${TODO_API}/${id}`, {
+              headers: {
+                Authorization: `Bearer ${TODOIST_TOKEN}`
+              }
+            });
+            return response.data;
+          } catch (error) {
+            console.error(`Error deleting task with ID ${id}:`, error);
+            throw error;
+          }
+        }
     }
-  } catch (error) {
-    console.error('An error occurred:', error);
-  }
 
-        // ваша реализация удаления существующей тудушки по ID
-    }
-}
 
 export default TaskService;
