@@ -1,20 +1,23 @@
 import axios from "axios";
 
-const TODO_API = 'https://api.todoist.com/rest/v2/tasks'
-const TODOIST_TOKEN = 'bf2545da4330ffb1d482d3b7a60f4885260baf40'
-const PROJECT_ID = '2314216553'
+const api = process.env.NEXT_PUBLIC_TODO_API
+const token = process.env.NEXT_PUBLIC_TODOIST_API_KEY;
+const project_id = process.env.NEXT_PUBLIC_PROJECT_ID;
+
 
 class TaskService {
     static async getAllTasks() {
         try {
-            const response = await axios.get(TODO_API, {
+          console.log(token)
+            const response = await axios.get(api, {
               headers: {
-                Authorization: `Bearer ${TODOIST_TOKEN}`
+                Authorization: `Bearer ${token}`
               },
               params: {
-                project_id: PROJECT_ID
+                project_id: project_id
               }
             });
+            console.log(token)
             console.log(response.data)
             return response.data;
           } catch (error) {
@@ -24,9 +27,9 @@ class TaskService {
     }
     static async getTaskById(id){
         try {
-            const response = await axios.get(`${TODO_API}/${id}`, {
+            const response = await axios.get(`${api}/${id}`, {
               headers: {
-                Authorization: `Bearer ${TODOIST_TOKEN}`
+                Authorization: `Bearer ${token}`
               }
             });
             return response.data;
@@ -38,12 +41,12 @@ class TaskService {
     static async createNewTask(task) {
         try {
           console.log(task)
-            const response = await axios.post(TODO_API, {"content": `${task}`, "due_string": "today", "due_lang": "en", "priority": 4}, {
+            const response = await axios.post(api, {"content": `${task}`, "due_string": "today", "due_lang": "en", "priority": 4}, {
               headers: {
-                Authorization: `Bearer ${TODOIST_TOKEN}`
+                Authorization: `Bearer ${token}`
               },
               params: {
-                project_id: PROJECT_ID
+                project_id: project_id
               }
             });
             console.log(response.data)
@@ -55,9 +58,9 @@ class TaskService {
     }
     static async CloseTask(task) {
         try {
-          const response = await axios.post(`${TODO_API}/${task.id}/close`, task, {
+          const response = await axios.post(`${api}/${task.id}/close`, task, {
             headers: {
-              Authorization: `Bearer ${TODOIST_TOKEN}`
+              Authorization: `Bearer ${token}`
             }
           });
           return response.data;
@@ -68,9 +71,9 @@ class TaskService {
       }
          static async OpenTask(task) {
         try {
-          const response = await axios.post(`${TODO_API}/${task.id}/reopen`, task, {
+          const response = await axios.post(`${api}/${task.id}/reopen`, task, {
             headers: {
-              Authorization: `Bearer ${TODOIST_TOKEN}`
+              Authorization: `Bearer ${token}`
             }
           });
           return response.data;
@@ -81,9 +84,9 @@ class TaskService {
       }
     static async deleteNewTask(id){
         try {
-            const response = await axios.delete(`${TODO_API}/${id}`, {
+            const response = await axios.delete(`${api}/${id}`, {
               headers: {
-                Authorization: `Bearer ${TODOIST_TOKEN}`
+                Authorization: `Bearer ${token}`
               }
             });
             return response.data;
