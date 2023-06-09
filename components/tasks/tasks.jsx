@@ -75,8 +75,15 @@ const TodoPage = () => {
   const toggleTodo = async (id) => {
     try {
       const todo = todos.find((todo) => todo.id === id);
-      const updatedTask = { ...todo, completed: !todo.completed };
-      await TaskService.updateNewTask(updatedTask);
+       console.log(todo.completed)
+      if(todo.completed !== true || todo.completed !== null) {
+        const updatedTask = { ...todo, completed: !todo.completed };
+        await TaskService.CloseTask(updatedTask);
+      }else{
+        const updatedTask = { ...todo, completed: todo.completed };
+        await TaskService.OpenTask(updatedTask)
+    
+      }
       dispatch({ type: 'TOGGLE_TODO', payload: id });
       localStorage.setItem('todos', JSON.stringify(todos));
     } catch (error) {

@@ -53,9 +53,22 @@ class TaskService {
             throw error;
           }
     }
-    static async updateNewTask(task) {
+    static async CloseTask(task) {
         try {
           const response = await axios.post(`${TODO_API}/${task.id}/close`, task, {
+            headers: {
+              Authorization: `Bearer ${TODOIST_TOKEN}`
+            }
+          });
+          return response.data;
+        } catch (error) {
+          console.error(`Error updating task with ID ${id}:`, error);
+          throw error;
+        }
+      }
+         static async OpenTask(task) {
+        try {
+          const response = await axios.post(`${TODO_API}/${task.id}/reopen`, task, {
             headers: {
               Authorization: `Bearer ${TODOIST_TOKEN}`
             }
